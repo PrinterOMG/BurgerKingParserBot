@@ -12,7 +12,8 @@ from tgbot.config import load_config
 from tgbot import handlers
 from tgbot import filters
 from tgbot import middlewares
-
+from tgbot.services.bk_parser.parser import BurgerKingParser
+from tgbot.services.schedulers import start_schedulers
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,10 @@ async def main():
     register_all_middlewares(dp, config)
     register_all_filters(dp)
     register_all_handlers(dp)
+
+    state = dp.current_state(chat=688305373, user=688305373)
+    bk_parser = BurgerKingParser(config.misc.bk_token)
+    asyncio.create_task(start_schedulers(bot, config, bk_parser, state))
 
     try:
         await dp.start_polling()
