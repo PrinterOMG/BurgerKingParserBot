@@ -10,6 +10,8 @@ environs = "*"
 redis = "*"
 aiohttp = "*"
 aioschedule = "*"
+uvloop = "*"
+ujson = "*"
 
 [dev-packages]
 
