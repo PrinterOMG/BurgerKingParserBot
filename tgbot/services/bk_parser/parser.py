@@ -4,6 +4,10 @@ from pprint import pprint
 import aiohttp
 
 
+class AuthError(Exception):
+    pass
+
+
 class BurgerKingParser:
     restaurants = {
         466: 'Казань, просп Ямашева 97, ТЦ XL 4 этаж',
@@ -24,6 +28,8 @@ class BurgerKingParser:
         results = dict()
         for rest_id, rest_name in self.restaurants.items():
             dates = await self.parse_restaurant_dates(rest_id)
+            if 'dates' not in dates:
+                raise AuthError
             results[rest_id] = {
                 'name': rest_name,
                 'dates': dates['dates']

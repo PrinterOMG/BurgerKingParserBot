@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from pprint import pprint
 
@@ -7,11 +8,18 @@ from aiogram.dispatcher import FSMContext
 
 from tgbot.config import Config
 from tgbot.keyboards import inline_keyboards
-from tgbot.services.bk_parser.parser import BurgerKingParser
+from tgbot.services.bk_parser.parser import BurgerKingParser, AuthError
 
 
 async def send_dates(bot: Bot, bk_parser: BurgerKingParser, config: Config, state: FSMContext):
-    restaurants = await bk_parser.parse_restaurants_dates()
+    try:
+        restaurants = await bk_parser.parse_restaurants_dates()
+    except AuthError:
+        for admin in config.bot.admin_ids:
+            await bot.send_message(chat_id=admin, text='Ошибка авторизации, нужно обновить токен')
+        await asyncio.sleep(3600)
+        return
+
     data = await state.get_data()
     for rest in restaurants:
         saved_dates = data.get(str(rest))
