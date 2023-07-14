@@ -48,9 +48,9 @@ async def main():
     bot_info = await bot.me
     logger.info(f'Bot: {bot_info.username} [{bot_info.mention}]')
 
-    storage = RedisStorage2() if config.bot.use_redis else MemoryStorage()
+    storage = RedisStorage2(host='redis') if config.bot.use_redis else MemoryStorage()
     dp = Dispatcher(bot, storage=storage)
-    redis = Redis()
+    redis = Redis(host='redis')
 
     bot['config'] = config
     bot['redis'] = redis
