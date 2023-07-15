@@ -12,6 +12,8 @@ aiohttp = "*"
 aioschedule = "*"
 uvloop = "*"
 ujson = "*"
+asyncpg = "*"
+sqlalchemy = {extras = ["asyncio"], version = "*"}
 
 [dev-packages]
 
