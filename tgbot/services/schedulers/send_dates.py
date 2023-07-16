@@ -8,6 +8,7 @@ from aiogram import Bot
 from aiogram.dispatcher import FSMContext
 from sqlalchemy import select
 
+from tgbot.keyboards import inline_keyboards
 from tgbot.misc import messages
 from tgbot.services.bk_parser.parser import BurgerKingParser, AuthError, ApiError
 from tgbot.services.database.models import BKUser, SavedDate
@@ -27,10 +28,13 @@ async def send_dates(bot: Bot, db):
                 try:
                     rest_dates = await bk_parser.parse_restaurant_dates(rest.id)
                 except AuthError:
-                    logging.error('Ошибка авторизации')
+                    await bot.send_message(chat_id=user.telegram_id, text=messages.auth_error,
+                                           reply_markup=inline_keyboards.relogin)
+                    user.mailing = False
                     continue
                 except ApiError:
-                    logging.error('API ошибка')
+                    await bot.send_message(chat_id=user.telegram_id, text=messages.api_error)
+                    user.mailing = False
                     continue
 
                 for rest_date in rest_dates['dates']:

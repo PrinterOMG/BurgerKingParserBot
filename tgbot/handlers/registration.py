@@ -131,6 +131,7 @@ async def get_code(message: Message, state: FSMContext):
 
 def register_registration(dp: Dispatcher):
     dp.register_callback_query_handler(start_registration, text='start_login')
+    dp.register_callback_query_handler(start_registration, text='relogin')
 
     dp.register_message_handler(new_phone, Text(equals=reply_commands.new_phone_request),
                                 state=states.Registration.waiting_for_code)

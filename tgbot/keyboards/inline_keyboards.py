@@ -17,3 +17,9 @@ profile = InlineKeyboardMarkup(inline_keyboard=[
         InlineKeyboardButton('Вкл/выкл рассылку', callback_data='switch_mailing')
     ]
 ])
+
+relogin = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton('Войти повторно', callback_data='relogin')
+    ]
+])
