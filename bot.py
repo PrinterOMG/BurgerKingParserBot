@@ -71,7 +71,7 @@ async def main():
     register_all_filters(dp)
     register_all_handlers(dp)
 
-    await send_dates(bot, async_sessionmaker)
+    asyncio.create_task(start_schedulers(bot, async_sessionmaker))
 
     try:
         await dp.start_polling()
