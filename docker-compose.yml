@@ -19,6 +19,8 @@ services:
   postgres:
     image: postgres
     restart: always
+    ports:
+      - "5555:5432"
     env_file:
       - .env
     volumes:

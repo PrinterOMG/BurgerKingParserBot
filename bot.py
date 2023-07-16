@@ -56,7 +56,7 @@ async def main():
     redis = Redis(host='redis')
 
     engine = create_async_engine(
-        f'postgresql+asyncpg://{config.database.user}:{config.database.password}@postgres/{config.database.database}',
+        f'postgresql+asyncpg://{config.database.user}:{config.database.password}@postgres/{config.database.name}',
         future=True
     )
     async with engine.begin() as conn:
@@ -71,9 +71,7 @@ async def main():
     register_all_filters(dp)
     register_all_handlers(dp)
 
-    state = dp.current_state(chat=688305373, user=688305373)
-    bk_parser = BurgerKingParser(config.misc.bk_token)
-    asyncio.create_task(start_schedulers(bot, config, bk_parser, state))
+    await send_dates(bot, async_sessionmaker)
 
     try:
         await dp.start_polling()

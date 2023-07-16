@@ -4,6 +4,13 @@ from environs import Env
 
 
 @dataclass
+class Database:
+    user: str
+    password: str
+    name: str
+
+
+@dataclass
 class TelegramBot:
     token: str
     admin_ids: list[int]
@@ -12,13 +19,14 @@ class TelegramBot:
 
 @dataclass
 class Miscellaneous:
-    bk_token: str
+    pass
 
 
 @dataclass
 class Config:
     bot: TelegramBot
     misc: Miscellaneous
+    database: Database
 
 
 def load_config(path: str = None):
@@ -32,6 +40,11 @@ def load_config(path: str = None):
             use_redis=env.bool('USE_REDIS'),
         ),
         misc=Miscellaneous(
-            bk_token=env.str('BURGER_KING_TOKEN')
+
+        ),
+        database=Database(
+            name=env.str('POSTGRES_DB'),
+            user=env.str('POSTGRES_USER'),
+            password=env.str('POSTGRES_PASSWORD')
         )
     )

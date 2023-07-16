@@ -11,7 +11,7 @@ class SavedDate(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date, nullable=False)
 
-    bk_user_id = Column(Integer, ForeignKey('bk_user.id'))
+    bk_user_id = Column(BigInteger, ForeignKey('bk_user.id'))
     restaurant_id = Column(Integer, ForeignKey('restaurant.id'))
 
     bk_user = relationship('BKUser', backref='saved_dates')

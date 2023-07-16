@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from pprint import pprint
 
 import aiohttp
@@ -8,14 +9,11 @@ class AuthError(Exception):
     pass
 
 
-class BurgerKingParser:
-    restaurants = {
-        466: 'Казань, просп Ямашева 97, ТЦ XL 4 этаж',
-        279: 'Казань, просп Ибрагимова 56, ТЦ Тандем 3 этаж',
-        436: 'Казань, ул Декабристов 133, ТЦ Тюбетейка',
-        321: 'Казань, просп Хусаина Ямашева 46, ТЦ Парк Хаус 2 этаж'
-    }
+class ApiError(Exception):
+    pass
 
+
+class BurgerKingParser:
     def __init__(self, token=''):
         self.token = token
 
@@ -28,15 +26,15 @@ class BurgerKingParser:
         self.token = new_token
         self.headers['X-Burger-King-Token'] = new_token
 
-    async def parse_restaurants_dates(self):
-        results = dict()
-        for rest_id, rest_name in self.restaurants.items():
-            dates = await self.parse_restaurant_dates(rest_id)
-            results[rest_id] = {
-                'name': rest_name,
-                'dates': dates['dates']
-            }
-        return results
+    async def get_user_info(self):
+        url = 'https://burgerkingrus.ru/auth/v1/user/info'
+
+        return await self._get_request(url)
+
+    async def get_user_check_info(self):
+        url = 'https://burgerkingrus.ru/secret-shopper/api/v1/user/info'
+
+        return await self._get_request(url)
 
     async def parse_restaurant_dates(self, restaurant_id):
         url = f'https://burgerkingrus.ru/secret-shopper/api/v1/check/available/dates?restaurant={restaurant_id}&checkType=restaurant'
@@ -47,7 +45,6 @@ class BurgerKingParser:
         url = f'https://burgerkingrus.ru/secret-shopper/api/v1/city/list?limit={limit}'
 
         return await self._get_request(url)
-
 
     async def get_city_restaurants(self, city_id):
         url = f'https://burgerkingrus.ru/secret-shopper/api/v1/restaurant?city={city_id}'
@@ -96,33 +93,24 @@ class BurgerKingParser:
                 case 'DELETE': request = session.delete
                 case 'PATCH': request = session.patch
 
-            async with request(url, **kwargs) as response:
-                json_resp = await response.json()
+            try:
+                async with request(url, **kwargs) as response:
+                    json_resp = await response.json()
 
-                if 'message' in json_resp and json_resp.message == 'Ошибка авторизации':
-                    raise AuthError
+                    if 'message' in json_resp and json_resp['message'] == 'Ошибка авторизации':
+                        logging.error(json_resp)
+                        raise AuthError
 
-                return json_resp
+                    return json_resp
+            except:
+                logging.error(await response.text())
+                raise ApiError
 
 
 async def main():
-    bk = BurgerKingParser()
+    bk = BurgerKingParser('27846d7e-0d29-4bd0-bb06-1283210673f7')
 
-    phone = input('Input phone: ')
-    login = await bk.start_login(phone)
-    pprint(login)
-    if login['status'] != 'ok':
-        return
-
-    code = input('Input code: ')
-    token = await bk.get_token(phone, code, login['response']['hash'])
-    pprint(token)
-    token = token['response']['token']
-    bk.update_token(token)
-
-    result = await bk.get_city_restaurants(1)
-    pprint(result)
-    print(len(result))
+    pprint(await bk.parse_restaurant_dates(436))
 
 
 if __name__ == '__main__':

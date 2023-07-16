@@ -14,3 +14,14 @@ class Restaurant(Base):
     bk_city_id = Column(Integer, ForeignKey('city.id'))
 
     city = relationship('City', backref='restaurant')
+
+    @classmethod
+    async def get_or_create(cls, session, api_restaurant, city):
+        restaurant = await session.get(Restaurant, api_restaurant['id'])
+
+        if restaurant is None:
+            restaurant = Restaurant(id=api_restaurant['id'], address=api_restaurant['address'], city=city)
+            session.add(restaurant)
+            await session.commit()
+
+        return restaurant
