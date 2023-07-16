@@ -31,11 +31,11 @@ async def send_dates(bot: Bot, db):
                     await bot.send_message(chat_id=user.telegram_id, text=messages.auth_error,
                                            reply_markup=inline_keyboards.relogin)
                     user.mailing = False
-                    continue
+                    break
                 except ApiError:
                     await bot.send_message(chat_id=user.telegram_id, text=messages.api_error)
                     user.mailing = False
-                    continue
+                    break
 
                 for rest_date in rest_dates['dates']:
                     date = datetime.datetime.strptime(rest_date['date'], '%d.%m.%Y').date()

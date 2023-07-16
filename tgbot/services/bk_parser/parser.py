@@ -96,15 +96,15 @@ class BurgerKingParser:
             try:
                 async with request(url, **kwargs) as response:
                     json_resp = await response.json()
-
-                    if 'message' in json_resp and json_resp['message'] == 'Ошибка авторизации':
-                        logging.error(json_resp)
-                        raise AuthError
-
-                    return json_resp
             except:
                 logging.error(await response.text())
                 raise ApiError
+            else:
+                if 'message' in json_resp and json_resp['message'] == 'Ошибка авторизации':
+                    logging.error(json_resp)
+                    raise AuthError
+
+                return json_resp
 
 
 async def main():

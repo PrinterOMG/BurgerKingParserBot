@@ -92,6 +92,11 @@ async def get_code(message: Message, state: FSMContext):
     user_info = await bk_parser.get_user_info()
     user_check_info = await bk_parser.get_user_check_info()
 
+    if 'city' not in user_check_info or not user_check_info['city']:
+        await message.answer(messages.bad_survey, reply_markup=ReplyKeyboardRemove())
+        await state.finish()
+        return
+
     db = message.bot.get('database')
     async with db() as session:
         bk_user = await session.get(BKUser, user_info['response']['id'])
@@ -102,6 +107,7 @@ async def get_code(message: Message, state: FSMContext):
             restaurants.append(await Restaurant.get_or_create(session, restaurant, city))
 
         if bk_user:
+            await session.refresh(bk_user, ['city', 'restaurants'])
             bk_user.name = user_check_info['name']
             bk_user.token = result['response']['token']
             bk_user.phone = data['phone']
@@ -109,8 +115,11 @@ async def get_code(message: Message, state: FSMContext):
             bk_user.restaurants = restaurants
             bk_user.mailing = True
             old_tg_id = bk_user.telegram_id
-            bk_user.telegram_id = message.from_id
-            await message.bot.send_message(chat_id=old_tg_id, text=messages.unlogin)
+            if old_tg_id == bk_user.telegram_id:
+                await message.answer(messages.relogin, reply_markup=ReplyKeyboardRemove())
+            else:
+                bk_user.telegram_id = message.from_id
+                await message.bot.send_message(chat_id=old_tg_id, text=messages.unlogin, reply_markup=ReplyKeyboardRemove())
         else:
             bk_user = BKUser(
                 id=user_info['response']['id'],
