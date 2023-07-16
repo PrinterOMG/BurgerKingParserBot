@@ -41,6 +41,16 @@ async def command_profile(message: Message):
     ), reply_markup=inline_keyboards.profile)
 
 
+async def command_help(message: Message):
+    await message.answer(messages.help_text, reply_markup=inline_keyboards.contact)
+
+
+async def command_news(message: Message):
+    await message.answer(messages.news, reply_markup=inline_keyboards.contact)
+
+
 def register_commands(dp: Dispatcher):
     dp.register_message_handler(command_start, commands=['start'], state='*')
     dp.register_message_handler(command_profile, commands=['profile'])
+    dp.register_message_handler(command_help, commands=['help'])
+    dp.register_message_handler(command_news, commands=['news'])
