@@ -1,8 +1,10 @@
 from aiogram import Dispatcher
 from aiogram.types import Message
+from aiogram.utils import markdown as md
 
 from tgbot.keyboards import inline_keyboards
 from tgbot.misc import messages
+from tgbot.services.bk_parser.parser import BurgerKingParser, AuthError, ApiError
 from tgbot.services.database.models import TelegramUser
 
 
@@ -49,8 +51,48 @@ async def command_news(message: Message):
     await message.answer(messages.news, reply_markup=inline_keyboards.contact)
 
 
+async def commands_checks(message: Message):
+    db = message.bot.get('database')
+
+    async with db() as session:
+        tg_user = await session.get(TelegramUser, message.from_id)
+        await session.refresh(tg_user, ['bk_user'])
+        bk_user = tg_user.bk_user
+        await session.refresh(bk_user, ['restaurants'])
+
+        text = ''
+        bk_parser = BurgerKingParser(bk_user.token)
+        for rest in bk_user.restaurants:
+            text += f'\n\n{md.hbold(rest.address)}'
+            try:
+                dates = await bk_parser.parse_restaurant_dates(rest.id)
+            except AuthError:
+                await message.answer(messages.auth_error, reply_markup=inline_keyboards.relogin)
+                bk_user.mailing = False
+                return
+            except ApiError:
+                await message.answer(text=messages.api_error)
+                bk_user.mailing = False
+                return
+            add = False
+            for date in dates['dates']:
+                if date['disabled']:
+                    continue
+                text += f'\n{md.hunderline(date["date"])}'
+                for time in date['times']:
+                    if time['disabled']:
+                        continue
+                    add = True
+                    text += f'\n\tс {time["startTime"]} до {time["endTime"]}'
+            if not add:
+                text += '\nПусто :('
+
+    await message.answer(text)
+
+
 def register_commands(dp: Dispatcher):
     dp.register_message_handler(command_start, commands=['start'], state='*')
     dp.register_message_handler(command_profile, commands=['profile'])
     dp.register_message_handler(command_help, commands=['help'])
     dp.register_message_handler(command_news, commands=['news'])
+    dp.register_message_handler(commands_checks, commands=['checks'])
