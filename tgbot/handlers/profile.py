@@ -33,8 +33,9 @@ async def switch_mailing(call: CallbackQuery):
         await session.refresh(tg_user, ['bk_user'])
         bk_user = tg_user.bk_user
         bk_user.mailing = not bk_user.mailing
+        await session.commit()
 
-    await call.answer('Обновлено')
+    await show_profile(call)
 
 
 def register_profile(dp: Dispatcher):
